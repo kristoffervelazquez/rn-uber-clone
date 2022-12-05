@@ -1,16 +1,26 @@
 import { StyleSheet, Text, SafeAreaView, View } from 'react-native'
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import tw from 'twrnc'
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete'
 import { GOOGLE_MAPS_APIKEY } from '@env'
-import { useDispatch } from 'react-redux'
-import { setDestination } from '../slices/navSlice'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectDestination, setDestination } from '../slices/navSlice'
 import { useNavigation } from '@react-navigation/native'
+import NavFavs from './NavFavs'
 
 
 const NavigateCard = () => {
     const dispatch = useDispatch();
     const navigation = useNavigation();
+    const destination = useSelector(selectDestination)
+
+    const ref = useRef(null);
+
+    useEffect(() => {
+        if (!destination) return;
+        ref.current?.setAddressText(destination.description);
+    }, [destination]);
+
 
     return (
         <SafeAreaView style={tw`bg-white flex-1`}>
@@ -18,6 +28,7 @@ const NavigateCard = () => {
             <View style={tw`border-t border-gray-200 flex-shrink`}>
                 <View>
                     <GooglePlacesAutocomplete
+                        ref={ref}
                         placeholder='Where to?'
                         minLength={2}
                         fetchDetails={true}
@@ -27,6 +38,10 @@ const NavigateCard = () => {
                                 location: details.geometry.location,
                                 description: data.description
                             }));
+                            console.log({
+                                location: details.geometry.location,
+                                description: data.description
+                            })
 
                             navigation.navigate('RideOptionsCard')
                         }}
@@ -55,6 +70,7 @@ const NavigateCard = () => {
                         debounce={400}
                     />
                 </View>
+                <NavFavs />
             </View>
         </SafeAreaView>
     )
